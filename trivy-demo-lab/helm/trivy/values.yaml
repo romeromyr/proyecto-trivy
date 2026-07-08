@@ -1,0 +1,26 @@
+replicaCount: 1
+
+image:
+  repository: aquasec/trivy
+  pullPolicy: IfNotPresent
+  tag: "0.71.0"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+serviceAccount:
+  create: true
+  annotations: {}

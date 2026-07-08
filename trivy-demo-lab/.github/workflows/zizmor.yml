@@ -1,0 +1,40 @@
+name: Zizmor - GitHub Actions Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: Scan Workflows with Zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Zizmor
+        run: |
+          cargo install zizmor
+
+      - name: Run Zizmor
+        run: |
+          zizmor --format sarif .github/workflows/ > zizmor-results.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: zizmor-results.sarif
+          category: zizmor

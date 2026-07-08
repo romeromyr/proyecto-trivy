@@ -1,0 +1,77 @@
+name: Build Trivy - SEGURO (Zero Trust)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+env:
+  GO_VERSION: '1.22'
+  COSIGN_EXPERIMENTAL: '1'
+
+jobs:
+  build:
+    name: Build and Sign
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build Trivy binary
+        run: |
+          echo "Building Trivy securely..."
+          go build -ldflags="-s -w" -o dist/trivy ./cmd/trivy
+          echo "Build completed successfully"
+
+      - name: Run tests
+        run: go test ./pkg/... -v -count=1
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.5.0
+        with:
+          cosign-release: 'v2.2.4'
+
+      - name: Sign binary with Cosign (keyless)
+        run: |
+          cosign sign-blob --yes             --output-signature dist/trivy.sig             --output-certificate dist/trivy.crt             dist/trivy
+
+      - name: Verify signature
+        run: |
+          cosign verify-blob             --signature dist/trivy.sig             --certificate dist/trivy.crt             --certificate-identity-regexp='^https://github.com/${{ github.repository }}/.github/workflows/.*@refs/pull/${{ github.event.pull_request.number }}/merge$'             --certificate-oidc-issuer='https://token.actions.githubusercontent.com'             dist/trivy
+
+      - name: Publish to GitHub Container Registry (GHCR) with OIDC
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push signed image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }} .
+          docker push ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
+          cosign sign --yes ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-binary-signed
+          path: |
+            dist/trivy
+            dist/trivy.sig
+            dist/trivy.crt

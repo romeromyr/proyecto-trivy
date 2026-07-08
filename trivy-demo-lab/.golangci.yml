@@ -1,0 +1,31 @@
+run:
+  timeout: 10m
+  skip-dirs:
+    - docs
+    - magefiles
+
+linters:
+  enable:
+    - gofmt
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - gosimple
+    - structcheck
+    - varcheck
+    - ineffassign
+    - deadcode
+    - typecheck
+    - gosec
+
+linters-settings:
+  gosec:
+    excludes:
+      - G104
+      - G307
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

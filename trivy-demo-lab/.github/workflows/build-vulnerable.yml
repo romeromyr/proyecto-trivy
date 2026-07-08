@@ -1,0 +1,64 @@
+name: Build Trivy - VULNERABLE (Demo Only)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+env:
+  GO_VERSION: '1.22'
+
+jobs:
+  build:
+    name: Build and Publish
+    runs-on: self-hosted
+    steps:
+      - name: Checkout PR code (DANGEROUS - pull_request_target)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build Trivy binary
+        run: |
+          echo "Building Trivy..."
+          go build -o dist/trivy ./cmd/trivy
+          echo "Build completed successfully"
+
+      - name: Run tests
+        run: go test ./pkg/... -v -count=1
+
+      - name: Publish to Docker Hub
+        env:
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        run: |
+          echo "Logging into Docker Hub..."
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker build -t aquasec/trivy:pr-${{ github.event.pull_request.number }} .
+          docker push aquasec/trivy:pr-${{ github.event.pull_request.number }}
+
+      - name: Publish to AWS ECR
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          echo "Configuring AWS credentials..."
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+          aws configure set region "$AWS_REGION"
+          echo "Pushing to ECR..."
+          aws ecr get-login-password | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+          docker tag aquasec/trivy:pr-${{ github.event.pull_request.number }} 123456789012.dkr.ecr.us-east-1.amazonaws.com/trivy:pr-${{ github.event.pull_request.number }}
+          docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/trivy:pr-${{ github.event.pull_request.number }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-binary
+          path: dist/trivy

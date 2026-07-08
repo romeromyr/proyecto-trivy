@@ -1,0 +1,62 @@
+site_name: Trivy Documentation
+site_url: https://aquasecurity.github.io/trivy/
+site_description: A Simple and Comprehensive Vulnerability Scanner for Containers and other Artifacts
+strict: false
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Getting Started:
+    - Overview: index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Scanning:
+    - Image: scanning/image.md
+    - Filesystem: scanning/filesystem.md
+    - Repository: scanning/repository.md
+    - Kubernetes: scanning/kubernetes.md
+  - Configuration:
+    - Overview: configuration/index.md
+    - Filtering: configuration/filtering.md
+    - Reporting: configuration/reporting.md
+  - Advanced:
+    - Air-Gapped Environment: advanced/air-gap.md
+    - Cache: advanced/cache.md
+  - Contributing:
+    - How to Contribute: contributing/index.md

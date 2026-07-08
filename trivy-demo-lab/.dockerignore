@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+docs/
+*.md
+
+# CI/CD
+.github/
+
+# IDE
+.idea/
+.vscode/
+
+# Build artifacts
+dist/
+build/
+coverage/

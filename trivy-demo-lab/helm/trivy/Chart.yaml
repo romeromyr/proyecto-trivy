@@ -1,0 +1,16 @@
+apiVersion: v2
+name: trivy
+description: A Helm chart for Trivy security scanner
+type: application
+version: 0.10.0
+appVersion: "0.71.0"
+keywords:
+  - security
+  - vulnerability
+  - scanner
+home: https://github.com/aquasecurity/trivy
+sources:
+  - https://github.com/aquasecurity/trivy
+maintainers:
+  - name: Aqua Security
+    email: maintainers@aquasec.com
