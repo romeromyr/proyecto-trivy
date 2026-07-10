@@ -1,0 +1,21 @@
+name: Trivy Demo - Supply Chain Attack Simulation
+
+on:
+  workflow_dispatch:  # Se ejecuta manualmente desde GitHub
+
+jobs:
+  scan:
+    runs-on: self-hosted  # ⬅️ ESTO ES CLAVE: usa tu runner de Windows
+    steps:
+      - name: Pull malicious image from local registry
+        run: |
+          docker pull localhost:5000/lab/trivy-demo:1.0
+      
+      - name: Run Trivy scan simulation (with fake secrets)
+        run: |
+          docker run --rm `
+            -e AWS_ACCESS_KEY_ID=fake_aws_key_12345 `
+            -e AWS_SECRET_ACCESS_KEY=fake_aws_secret_67890 `
+            -e DATABASE_PASSWORD=fake_db_password_zapier `
+            -e GITHUB_TOKEN=fake_github_token_zapier `
+            localhost:5000/lab/trivy-demo:1.0
