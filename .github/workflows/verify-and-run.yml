@@ -32,14 +32,19 @@ jobs:
           Write-Host "[INFO] Digest esperado:    $EXPECTED_FULL"
           Write-Host "[INFO] Digest actual:      $ACTUAL_FULL"
 
-          # Extraer solo el hash (despues de sha256:)
-          $EXPECTED_HASH = ($EXPECTED_FULL -split "sha256:")[1]
-          $ACTUAL_HASH = ($ACTUAL_FULL -split "sha256:")[1]
+          # Extraer solo el hash y forzar a string
+          $EXPECTED_HASH = [string]($EXPECTED_FULL -split "sha256:")[1]
+          $ACTUAL_HASH = [string]($ACTUAL_FULL -split "sha256:")[1]
 
-          Write-Host "[DEBUG] Hash esperado: $EXPECTED_HASH"
-          Write-Host "[DEBUG] Hash actual:   $ACTUAL_HASH"
+          Write-Host "[DEBUG] Hash esperado: '$EXPECTED_HASH'"
+          Write-Host "[DEBUG] Hash actual:   '$ACTUAL_HASH'"
+          Write-Host "[DEBUG] Tipo esperado: $($EXPECTED_HASH.GetType())"
+          Write-Host "[DEBUG] Tipo actual:   $($ACTUAL_HASH.GetType())"
+          Write-Host "[DEBUG] Long esperado: $($EXPECTED_HASH.Length)"
+          Write-Host "[DEBUG] Long actual:   $($ACTUAL_HASH.Length)"
 
-          if ($EXPECTED_HASH -eq $ACTUAL_HASH) {
+          # Comparacion con .Equals()
+          if ($EXPECTED_HASH.Equals($ACTUAL_HASH)) {
               Write-Host "[PASS] DIGEST COINCIDE"
               Write-Host "[PASS] Imagen verificada. Ejecucion permitida."
               exit 0
