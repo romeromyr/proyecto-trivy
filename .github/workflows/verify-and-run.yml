@@ -13,46 +13,34 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Pull image from registry
-        shell: powershell
-        run: |
-          docker pull localhost:5000/lab/trivy-demo:1.0
+        shell: cmd
+        run: docker pull localhost:5000/lab/trivy-demo:1.0
 
       - name: Verify image integrity with SHA256 digest
-        shell: powershell
+        shell: cmd
         run: |
-          Write-Host "=========================================="
-          Write-Host "VERIFICACION DE INTEGRIDAD - PIPELINE CI/CD"
-          Write-Host "=========================================="
-
-          $IMAGE = "localhost:5000/lab/trivy-demo:1.0"
-          $EXPECTED_DIGEST = "localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}"
-
-          Write-Host "[INFO] Imagen a verificar: $IMAGE"
-          Write-Host "[INFO] Digest esperado:    $EXPECTED_DIGEST"
-
-          $ACTUAL_DIGEST = docker inspect $IMAGE --format='{{index .RepoDigests 0}}'
-
-          Write-Host "[INFO] Digest actual:      $ACTUAL_DIGEST"
-          Write-Host "------------------------------------------"
-
-          if ($ACTUAL_DIGEST -eq $EXPECTED_DIGEST) {
-              Write-Host "[PASS] DIGEST COINCIDE"
-              Write-Host "[PASS] Imagen verificada. Ejecucion permitida."
-              exit 0
-          } else {
-              Write-Host "[FAIL] ALERTA: DIGEST NO COINCIDE"
-              Write-Host "[FAIL] La imagen puede haber sido alterada!"
-              Write-Host "[FAIL] Ejecucion BLOQUEADA."
-              exit 1
-          }
+          echo ==========================================
+          echo VERIFICACION DE INTEGRIDAD - PIPELINE CI/CD
+          echo ==========================================
+          set IMAGE=localhost:5000/lab/trivy-demo:1.0
+          set EXPECTED=localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}
+          echo [INFO] Imagen a verificar: %IMAGE%
+          echo [INFO] Digest esperado:    %EXPECTED%
+          for /f "tokens=*" %%a in ('docker inspect %IMAGE% --format={{index .RepoDigests 0}}') do set ACTUAL=%%a
+          echo [INFO] Digest actual:      %ACTUAL%
+          echo ------------------------------------------
+          if "%ACTUAL%"=="%EXPECTED%" (
+              echo [PASS] DIGEST COINCIDE
+              echo [PASS] Imagen verificada. Ejecucion permitida.
+              exit /b 0
+          ) else (
+              echo [FAIL] ALERTA: DIGEST NO COINCIDE
+              echo [FAIL] La imagen puede haber sido alterada!
+              echo [FAIL] Ejecucion BLOQUEADA.
+              exit /b 1
+          )
 
       - name: Run Trivy scan (only if verification passed)
         if: success()
-        shell: powershell
-        run: |
-          docker run --rm `
-            -e AWS_ACCESS_KEY_ID=fake_aws_key_12345 `
-            -e AWS_SECRET_ACCESS_KEY=fake_aws_secret_67890 `
-            -e DATABASE_PASSWORD=fake_db_password_zapier `
-            -e GITHUB_TOKEN=fake_github_token_zapier `
-            localhost:5000/lab/trivy-demo:1.0
+        shell: cmd
+        run: docker run --rm -e AWS_ACCESS_KEY_ID=fake_aws_key_12345 -e AWS_SECRET_ACCESS_KEY=fake_aws_secret_67890 -e DATABASE_PASSWORD=fake_db_password_zapier -e GITHUB_TOKEN=fake_github_token_zapier localhost:5000/lab/trivy-demo:1.0
