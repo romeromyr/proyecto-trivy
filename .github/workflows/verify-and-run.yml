@@ -25,17 +25,21 @@ jobs:
           Write-Host "=========================================="
 
           $IMAGE = "localhost:5000/lab/trivy-demo:1.0"
-          $EXPECTED_DIGEST = ("localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}").Trim()
+          $EXPECTED_FULL = "localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}"
+          $ACTUAL_FULL = docker inspect $IMAGE --format='{{index .RepoDigests 0}}'
 
           Write-Host "[INFO] Imagen a verificar: $IMAGE"
-          Write-Host "[INFO] Digest esperado:    $EXPECTED_DIGEST"
+          Write-Host "[INFO] Digest esperado:    $EXPECTED_FULL"
+          Write-Host "[INFO] Digest actual:      $ACTUAL_FULL"
 
-          $ACTUAL_DIGEST = ((docker inspect $IMAGE --format='{{index .RepoDigests 0}}') | Out-String).Trim()
+          # Extraer solo el hash (despues de sha256:)
+          $EXPECTED_HASH = ($EXPECTED_FULL -split "sha256:")[1]
+          $ACTUAL_HASH = ($ACTUAL_FULL -split "sha256:")[1]
 
-          Write-Host "[INFO] Digest actual:      $ACTUAL_DIGEST"
-          Write-Host "------------------------------------------"
+          Write-Host "[DEBUG] Hash esperado: $EXPECTED_HASH"
+          Write-Host "[DEBUG] Hash actual:   $ACTUAL_HASH"
 
-          if ($ACTUAL_DIGEST -eq $EXPECTED_DIGEST) {
+          if ($EXPECTED_HASH -eq $ACTUAL_HASH) {
               Write-Host "[PASS] DIGEST COINCIDE"
               Write-Host "[PASS] Imagen verificada. Ejecucion permitida."
               exit 0
