@@ -13,44 +13,46 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Pull image from registry
+        shell: pwsh
         run: |
           docker pull localhost:5000/lab/trivy-demo:1.0
 
       - name: Verify image integrity with SHA256 digest
-        shell: bash
+        shell: pwsh
         run: |
-          echo "=========================================="
-          echo "VERIFICACION DE INTEGRIDAD - PIPELINE CI/CD"
-          echo "=========================================="
+          Write-Host "=========================================="
+          Write-Host "VERIFICACION DE INTEGRIDAD - PIPELINE CI/CD"
+          Write-Host "=========================================="
 
-          IMAGE="localhost:5000/lab/trivy-demo:1.0"
-          EXPECTED_DIGEST="localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}"
+          $IMAGE = "localhost:5000/lab/trivy-demo:1.0"
+          $EXPECTED_DIGEST = "localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}"
 
-          echo "[INFO] Imagen a verificar: $IMAGE"
-          echo "[INFO] Digest esperado:    $EXPECTED_DIGEST"
+          Write-Host "[INFO] Imagen a verificar: $IMAGE"
+          Write-Host "[INFO] Digest esperado:    $EXPECTED_DIGEST"
 
-          ACTUAL_DIGEST=$(docker inspect $IMAGE --format='{{index .RepoDigests 0}}')
+          $ACTUAL_DIGEST = docker inspect $IMAGE --format='{{index .RepoDigests 0}}'
 
-          echo "[INFO] Digest actual:      $ACTUAL_DIGEST"
-          echo "------------------------------------------"
+          Write-Host "[INFO] Digest actual:      $ACTUAL_DIGEST"
+          Write-Host "------------------------------------------"
 
-          if [ "$ACTUAL_DIGEST" == "$EXPECTED_DIGEST" ]; then
-              echo "[PASS] DIGEST COINCIDE"
-              echo "[PASS] Imagen verificada. Ejecucion permitida."
+          if ($ACTUAL_DIGEST -eq $EXPECTED_DIGEST) {
+              Write-Host "[PASS] DIGEST COINCIDE"
+              Write-Host "[PASS] Imagen verificada. Ejecucion permitida."
               exit 0
-          else
-              echo "[FAIL] ALERTA: DIGEST NO COINCIDE"
-              echo "[FAIL] La imagen puede haber sido alterada!"
-              echo "[FAIL] Ejecucion BLOQUEADA."
+          } else {
+              Write-Host "[FAIL] ALERTA: DIGEST NO COINCIDE"
+              Write-Host "[FAIL] La imagen puede haber sido alterada!"
+              Write-Host "[FAIL] Ejecucion BLOQUEADA."
               exit 1
-          fi
+          }
 
       - name: Run Trivy scan (only if verification passed)
         if: success()
+        shell: pwsh
         run: |
-          docker run --rm \
-            -e AWS_ACCESS_KEY_ID=fake_aws_key_12345 \
-            -e AWS_SECRET_ACCESS_KEY=fake_aws_secret_67890 \
-            -e DATABASE_PASSWORD=fake_db_password_zapier \
-            -e GITHUB_TOKEN=fake_github_token_zapier \
+          docker run --rm `
+            -e AWS_ACCESS_KEY_ID=fake_aws_key_12345 `
+            -e AWS_SECRET_ACCESS_KEY=fake_aws_secret_67890 `
+            -e DATABASE_PASSWORD=fake_db_password_zapier `
+            -e GITHUB_TOKEN=fake_github_token_zapier `
             localhost:5000/lab/trivy-demo:1.0
