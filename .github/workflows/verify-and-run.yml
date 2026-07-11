@@ -25,12 +25,12 @@ jobs:
           Write-Host "=========================================="
 
           $IMAGE = "localhost:5000/lab/trivy-demo:1.0"
-          $EXPECTED_DIGEST = "localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}"
+          $EXPECTED_DIGEST = ("localhost:5000/lab/trivy-demo@${{ inputs.expected_digest }}").Trim()
 
           Write-Host "[INFO] Imagen a verificar: $IMAGE"
           Write-Host "[INFO] Digest esperado:    $EXPECTED_DIGEST"
 
-          $ACTUAL_DIGEST = docker inspect $IMAGE --format='{{index .RepoDigests 0}}'
+          $ACTUAL_DIGEST = ((docker inspect $IMAGE --format='{{index .RepoDigests 0}}') | Out-String).Trim()
 
           Write-Host "[INFO] Digest actual:      $ACTUAL_DIGEST"
           Write-Host "------------------------------------------"
