@@ -27,8 +27,7 @@ jobs:
           Write-Host "=========================================="
 
           $IMAGE = "localhost:5000/lab/trivy-demo:1.0"
-          
-          # Obtener el digest esperado desde variable de entorno
+
           $EXPECTED_FULL = $env:EXPECTED_DIGEST_INPUT
           $ACTUAL_FULL = docker inspect $IMAGE --format='{{index .RepoDigests 0}}'
 
@@ -36,7 +35,6 @@ jobs:
           Write-Host "[INFO] Digest esperado:    $EXPECTED_FULL"
           Write-Host "[INFO] Digest actual:      $ACTUAL_FULL"
 
-          # Extraer solo el hash (quitar todo lo que no sea hex)
           $EXPECTED_HASH = ($EXPECTED_FULL -replace ".*sha256:","").Trim()
           $ACTUAL_HASH = ($ACTUAL_FULL -replace ".*sha256:","").Trim()
 

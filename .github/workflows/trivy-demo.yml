@@ -1,16 +1,16 @@
 name: Trivy Demo - Supply Chain Attack Simulation
 
 on:
-  workflow_dispatch:  # Se ejecuta manualmente desde GitHub
+  workflow_dispatch:
 
 jobs:
   scan:
-    runs-on: self-hosted  # ⬅️ ESTO ES CLAVE: usa tu runner de Windows
+    runs-on: self-hosted
     steps:
       - name: Pull malicious image from local registry
         run: |
           docker pull localhost:5000/lab/trivy-demo:1.0
-      
+
       - name: Run Trivy scan simulation (with fake secrets)
         run: |
           docker run --rm `
